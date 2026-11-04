@@ -1,0 +1,33 @@
+services:
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      FRONTEND_ORIGIN: http://localhost:5173
+      FAKE_STORE_BASE_URL: https://fakestoreapi.com
+      UPSTREAM_TIMEOUT_MS: 8000
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_SECURE: "false"
+      MAIL_FROM: catalogue@localhost
+      SALES_EMAIL: sales@localhost
+    depends_on:
+      - mailpit
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:3000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
